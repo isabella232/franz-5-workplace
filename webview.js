@@ -1,22 +1,36 @@
 const path = require('path');
 
-module.exports = Franz => {
+module.exports = (Franz) => {
   const getMessages = () => {
-    const $unreadMessageCounter = document.querySelector('#mercurymessagesCountValue');
-    let unreadMessageCount = 0;
+    let direct = 0;
+    let indirect = 0;
 
-    if ($unreadMessageCounter) {
-      unreadMessageCount = parseInt($unreadMessageCounter.innerText);
+    const chatsElement = document.querySelector('#chats');
+    const notifications = document.querySelector('#notifications span span');
+    if (notifications) {
+      indirect = parseInt(notifications.innerText, 10);
     }
 
-    Franz.setBadge(unreadMessageCount);
+    if (chatsElement) {
+      if (!chatsElement.hasAttribute('aria-current')) {
+        const chatMessages = chatsElement.querySelector('span');
+
+        if (chatMessages) {
+          direct = parseInt(chatMessages.innerText, 10);
+        }
+      } else {
+        direct = document.querySelectorAll('[data-pagelet="WorkGalahadChannel"] .uiList [role="gridcell"] [role="button"] .oxk9n0fw').length;
+      }
+    }
+
+    Franz.setBadge(direct, indirect);
   };
 
   Franz.injectCSS(path.join(__dirname, 'workplace.css'));
   Franz.loop(getMessages);
-  
+
   /* Enable desktop notifications in messenger settings */
-  localStorage["_cs_desktopNotifsEnabled"] = JSON.stringify({"__t":new Date().getTime(), "__v":true})
+  localStorage._cs_desktopNotifsEnabled = JSON.stringify({ __t: new Date().getTime(), __v: true });
 
   if (typeof Franz.onNotify === 'function') {
     Franz.onNotify((notification) => {
